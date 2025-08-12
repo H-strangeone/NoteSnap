@@ -1,6 +1,6 @@
 # Overview
 
-GoalSync is a goal tracking and social accountability application built with a modern full-stack architecture. The application enables users to set personal and team goals, track progress through milestones, perform daily check-ins, and collaborate with others. It features a React-based frontend with TypeScript, an Express.js backend, and PostgreSQL database with Drizzle ORM for type-safe database operations.
+GoalSync is a comprehensive goal tracking and social accountability application built with a modern full-stack architecture. The application enables users to set personal and team goals, track progress through milestones, perform daily check-ins, capture progress memories with photos, monitor fitness data including step counting, and collaborate with others. It features a React-based frontend with TypeScript, an Express.js backend, Supabase for database and file storage, and Drizzle ORM for type-safe database operations.
 
 # User Preferences
 
@@ -28,9 +28,11 @@ The server follows a RESTful API pattern with Express.js:
 ## Database Design
 PostgreSQL database with Drizzle ORM providing type-safe database operations:
 - **Schema Management**: Drizzle migrations with TypeScript schema definitions
-- **Core Entities**: Users, goals, milestones, progress entries, daily check-ins, and activities
+- **Core Entities**: Users, goals, milestones, progress entries, daily check-ins, activities, photo memories, and fitness tracking
+- **Enhanced Features**: Photo upload support, fitness data tracking, step counting, memory galleries
 - **Relationships**: Foreign key relationships between users, goals, and associated data
 - **Session Storage**: Dedicated sessions table for authentication state
+- **File Storage**: Supabase storage integration for progress photos and memories
 
 ## Authentication & Authorization
 - **Provider**: Replit Auth integration with OIDC
@@ -52,9 +54,10 @@ PostgreSQL database with Drizzle ORM providing type-safe database operations:
 
 # External Dependencies
 
-## Database
-- **PostgreSQL**: Primary database with connection via DATABASE_URL environment variable
-- **Neon Database**: Serverless PostgreSQL provider (@neondatabase/serverless)
+## Database & Storage
+- **Supabase**: Primary database and file storage service (@supabase/supabase-js)
+- **PostgreSQL**: Database hosted on Supabase with real-time capabilities
+- **File Storage**: Supabase Storage for progress photos and user-uploaded content
 
 ## Authentication
 - **Replit Auth**: OIDC-based authentication system

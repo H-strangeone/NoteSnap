@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Goals from "@/pages/goals";
 import Analytics from "@/pages/analytics";
+import Fitness from "@/pages/fitness";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/goals" component={Goals} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/fitness" component={Fitness} />
         </>
       )}
       <Route component={NotFound} />

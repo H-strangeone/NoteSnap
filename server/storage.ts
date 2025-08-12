@@ -6,6 +6,8 @@ import {
   progressEntries,
   dailyCheckins,
   activities,
+  photoMemories,
+  fitnessTracking,
   type User,
   type UpsertUser,
   type Goal,
@@ -19,6 +21,10 @@ import {
   type InsertDailyCheckin,
   type Activity,
   type InsertActivity,
+  type PhotoMemory,
+  type InsertPhotoMemory,
+  type FitnessTracking,
+  type InsertFitnessTracking,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -66,7 +72,19 @@ export interface IStorage {
     completedWeek: number;
     teamGoals: number;
     avgProgress: number;
+    totalSteps: number;
   }>;
+
+  // Photo memory operations
+  getPhotoMemories(userId: string, goalId?: string): Promise<PhotoMemory[]>;
+  createPhotoMemory(memory: InsertPhotoMemory): Promise<PhotoMemory>;
+  deletePhotoMemory(id: string): Promise<void>;
+
+  // Fitness tracking operations
+  getFitnessData(userId: string, days?: number): Promise<FitnessTracking[]>;
+  getTodayFitness(userId: string): Promise<FitnessTracking | undefined>;
+  createFitnessEntry(entry: InsertFitnessTracking): Promise<FitnessTracking>;
+  updateFitnessEntry(id: string, updates: Partial<FitnessTracking>): Promise<FitnessTracking>;
 }
 
 import { db } from "./db";
@@ -321,6 +339,7 @@ export class DatabaseStorage implements IStorage {
     completedWeek: number;
     teamGoals: number;
     avgProgress: number;
+    totalSteps: number;
   }> {
     const userGoals = await this.getGoals(userId);
     const teamGoals = await this.getTeamGoals(userId);
@@ -334,12 +353,92 @@ export class DatabaseStorage implements IStorage {
     const totalProgress = userGoals.reduce((sum, goal) => sum + (goal.progress || 0), 0);
     const avgProgress = userGoals.length > 0 ? Math.round(totalProgress / userGoals.length) : 0;
 
+    // Get total steps from fitness tracking
+    const weeklyFitness = await db
+      .select()
+      .from(fitnessTracking)
+      .where(and(eq(fitnessTracking.userId, userId), gte(fitnessTracking.date, weekAgo)));
+    
+    const totalSteps = weeklyFitness.reduce((sum, entry) => sum + (entry.steps || 0), 0);
+
     return {
       activeGoals,
       completedWeek,
       teamGoals: teamGoals.length,
       avgProgress,
+      totalSteps,
     };
+  }
+
+  // Photo memory operations
+  async getPhotoMemories(userId: string, goalId?: string): Promise<PhotoMemory[]> {
+    let query = db.select().from(photoMemories).where(eq(photoMemories.userId, userId));
+    
+    if (goalId) {
+      query = query.where(eq(photoMemories.goalId, goalId));
+    }
+    
+    return await query.orderBy(desc(photoMemories.createdAt));
+  }
+
+  async createPhotoMemory(memoryData: InsertPhotoMemory): Promise<PhotoMemory> {
+    const [memory] = await db.insert(photoMemories).values(memoryData).returning();
+    return memory;
+  }
+
+  async deletePhotoMemory(id: string): Promise<void> {
+    await db.delete(photoMemories).where(eq(photoMemories.id, id));
+  }
+
+  // Fitness tracking operations
+  async getFitnessData(userId: string, days: number = 7): Promise<FitnessTracking[]> {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    
+    return await db
+      .select()
+      .from(fitnessTracking)
+      .where(and(eq(fitnessTracking.userId, userId), gte(fitnessTracking.date, startDate)))
+      .orderBy(desc(fitnessTracking.date));
+  }
+
+  async getTodayFitness(userId: string): Promise<FitnessTracking | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [fitness] = await db
+      .select()
+      .from(fitnessTracking)
+      .where(
+        and(
+          eq(fitnessTracking.userId, userId),
+          gte(fitnessTracking.date, today),
+          lt(fitnessTracking.date, tomorrow)
+        )
+      );
+
+    return fitness;
+  }
+
+  async createFitnessEntry(entryData: InsertFitnessTracking): Promise<FitnessTracking> {
+    const [entry] = await db
+      .insert(fitnessTracking)
+      .values({ ...entryData, date: new Date() })
+      .returning();
+
+    return entry;
+  }
+
+  async updateFitnessEntry(id: string, updates: Partial<FitnessTracking>): Promise<FitnessTracking> {
+    const [entry] = await db
+      .update(fitnessTracking)
+      .set(updates)
+      .where(eq(fitnessTracking.id, id))
+      .returning();
+
+    if (!entry) throw new Error("Fitness entry not found");
+    return entry;
   }
 }
 

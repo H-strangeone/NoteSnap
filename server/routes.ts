@@ -6,14 +6,31 @@ import {
   insertGoalSchema, 
   insertMilestoneSchema, 
   insertProgressEntrySchema,
-  insertDailyCheckinSchema
+  insertDailyCheckinSchema,
+  insertPhotoMemorySchema,
+  insertFitnessTrackingSchema
 } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import { uploadFile, deleteFile } from "./supabase";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Multer setup for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
   });
 
   // Auth middleware
@@ -220,6 +237,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error adding collaborator:", error);
       res.status(500).json({ message: "Failed to add collaborator" });
+    }
+  });
+
+  // Photo memory routes
+  app.get('/api/memories', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const goalId = req.query.goalId as string;
+      
+      const memories = await storage.getPhotoMemories(userId, goalId);
+      res.json(memories);
+    } catch (error) {
+      console.error("Error fetching memories:", error);
+      res.status(500).json({ message: "Failed to fetch memories" });
+    }
+  });
+
+  app.post('/api/memories/upload', isAuthenticated, upload.single('photo'), async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { caption, goalId, progressEntryId } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "No photo provided" });
+      }
+
+      // Upload to Supabase storage
+      const fileName = `${userId}/${Date.now()}-${file.originalname}`;
+      const { url, error } = await uploadFile('progress-photos', fileName, file.buffer, file.mimetype);
+
+      if (error || !url) {
+        console.error("Upload error:", error);
+        return res.status(500).json({ message: "Failed to upload photo" });
+      }
+
+      // Save to database
+      const memory = await storage.createPhotoMemory({
+        userId,
+        goalId: goalId || null,
+        progressEntryId: progressEntryId || null,
+        photoUrl: url,
+        caption: caption || null,
+        tags: [], // You can add tag parsing here
+      });
+
+      res.json(memory);
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      res.status(500).json({ message: "Failed to upload photo" });
+    }
+  });
+
+  app.delete('/api/memories/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const memoryId = req.params.id;
+      await storage.deletePhotoMemory(memoryId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting memory:", error);
+      res.status(500).json({ message: "Failed to delete memory" });
+    }
+  });
+
+  // Fitness tracking routes
+  app.get('/api/fitness/today', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const fitness = await storage.getTodayFitness(userId);
+      res.json(fitness);
+    } catch (error) {
+      console.error("Error fetching today's fitness:", error);
+      res.status(500).json({ message: "Failed to fetch fitness data" });
+    }
+  });
+
+  app.get('/api/fitness/weekly', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const days = parseInt(req.query.days as string) || 7;
+      const fitness = await storage.getFitnessData(userId, days);
+      res.json(fitness);
+    } catch (error) {
+      console.error("Error fetching weekly fitness:", error);
+      res.status(500).json({ message: "Failed to fetch fitness data" });
+    }
+  });
+
+  app.post('/api/fitness', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const fitnessData = insertFitnessTrackingSchema.parse({ ...req.body, userId });
+      
+      const fitness = await storage.createFitnessEntry(fitnessData);
+      res.json(fitness);
+    } catch (error) {
+      console.error("Error creating fitness entry:", error);
+      res.status(500).json({ message: "Failed to create fitness entry" });
+    }
+  });
+
+  app.put('/api/fitness/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const fitnessId = req.params.id;
+      const updates = req.body;
+      
+      const fitness = await storage.updateFitnessEntry(fitnessId, updates);
+      res.json(fitness);
+    } catch (error) {
+      console.error("Error updating fitness entry:", error);
+      res.status(500).json({ message: "Failed to update fitness entry" });
     }
   });
 

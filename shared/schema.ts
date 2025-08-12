@@ -76,6 +76,8 @@ export const progressEntries = pgTable("progress_entries", {
   previousProgress: integer("previous_progress").default(0),
   newProgress: integer("new_progress").notNull(),
   notes: text("notes"),
+  photoUrl: varchar("photo_url"),
+  photoCaption: text("photo_caption"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -84,6 +86,9 @@ export const dailyCheckins = pgTable("daily_checkins", {
   userId: varchar("user_id").notNull().references(() => users.id),
   mood: varchar("mood").notNull(), // "great", "good", "okay", "struggling"
   notes: text("notes"),
+  steps: integer("steps").default(0),
+  photoUrl: varchar("photo_url"),
+  photoCaption: text("photo_caption"),
   date: timestamp("date").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -95,6 +100,33 @@ export const activities = pgTable("activities", {
   goalId: varchar("goal_id").references(() => goals.id),
   milestoneId: varchar("milestone_id").references(() => milestones.id),
   data: jsonb("data"), // Additional activity-specific data
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Photo memories table for progress photos
+export const photoMemories = pgTable("photo_memories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  goalId: varchar("goal_id").references(() => goals.id),
+  progressEntryId: varchar("progress_entry_id").references(() => progressEntries.id),
+  photoUrl: varchar("photo_url").notNull(),
+  caption: text("caption"),
+  tags: varchar("tags").array(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Fitness tracking table
+export const fitnessTracking = pgTable("fitness_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  date: timestamp("date").defaultNow(),
+  steps: integer("steps").default(0),
+  distance: integer("distance").default(0), // in meters
+  calories: integer("calories").default(0),
+  activeMinutes: integer("active_minutes").default(0),
+  heartRate: integer("heart_rate"),
+  weight: integer("weight"), // in grams for precision
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -127,6 +159,17 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
   createdAt: true,
 });
 
+export const insertPhotoMemorySchema = createInsertSchema(photoMemories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFitnessTrackingSchema = createInsertSchema(fitnessTracking).omit({
+  id: true,
+  createdAt: true,
+  date: true,
+});
+
 // Type exports
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -141,3 +184,7 @@ export type DailyCheckin = typeof dailyCheckins.$inferSelect;
 export type InsertDailyCheckin = z.infer<typeof insertDailyCheckinSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type PhotoMemory = typeof photoMemories.$inferSelect;
+export type InsertPhotoMemory = z.infer<typeof insertPhotoMemorySchema>;
+export type FitnessTracking = typeof fitnessTracking.$inferSelect;
+export type InsertFitnessTracking = z.infer<typeof insertFitnessTrackingSchema>;

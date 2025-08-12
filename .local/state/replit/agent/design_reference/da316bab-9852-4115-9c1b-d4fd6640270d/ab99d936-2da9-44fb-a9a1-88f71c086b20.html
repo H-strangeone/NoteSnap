@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoalSync - Collaborative Goal Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#6366F1',
+                    secondary: '#10B981',
+                    accent: '#F59E0B',
+                    neutral: '#64748B'
+                },
+                fontFamily: {
+                    'sans': ['Inter', 'system-ui', 'sans-serif']
+                }
+            }
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 font-sans">
+    <!-- @COMPONENT: AppLayout -->
+    <div class="min-h-screen">
+        <!-- Navigation Header -->
+        <!-- @COMPONENT: NavigationHeader -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-8">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                <i class="fas fa-target text-white text-sm"></i>
+                            </div>
+                            <h1 class="text-xl font-bold text-slate-900">GoalSync</h1>
+                        </div>
+                        <nav class="hidden md:flex space-x-8">
+                            <a href="#" class="text-primary font-medium border-b-2 border-primary pb-4">Dashboard</a>
+                            <a href="#" class="text-slate-600 hover:text-slate-900 pb-4">My Goals</a>
+                            <a href="#" class="text-slate-600 hover:text-slate-900 pb-4">Team Goals</a>
+                            <a href="#" class="text-slate-600 hover:text-slate-900 pb-4">Analytics</a>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button class="p-2 text-slate-600 hover:text-slate-900 relative">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                            </button>
+                        </div>
+                        <!-- Profile -->
+                        <div class="flex items-center space-x-3">
+                            <!-- User avatar showing teamwork concept -->
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&w=32&h=32&auto=format&fit=crop&crop=face" alt="User Profile" class="w-8 h-8 rounded-full object-cover">
+                            <span class="hidden sm:block text-sm font-medium text-slate-900" data-bind="user.name">Alex Johnson</span>
+                            <i class="fas fa-chevron-down text-slate-400 text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: NavigationHeader -->
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- @COMPONENT: DashboardOverview -->
+            <div class="mb-8">
+                <!-- Page Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-slate-900">Good morning, <span data-bind="user.firstName">Alex</span>! 👋</h2>
+                        <p class="text-slate-600 mt-1">Let's see how your goals are progressing today</p>
+                    </div>
+                    <button data-event="click:openGoalModal" class="bg-primary hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                        <i class="fas fa-plus"></i>
+                        <span>New Goal</span>
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl p-6 border border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-600 text-sm font-medium">Active Goals</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-1" data-bind="stats.activeGoals">12</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-bullseye text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-600 text-sm font-medium">Completed This Week</p>
+                                <p class="text-3xl font-bold text-secondary mt-1" data-bind="stats.completedWeek">3</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-secondary text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-600 text-sm font-medium">Team Goals</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-1" data-bind="stats.teamGoals">5</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-600 text-sm font-medium">Average Progress</p>
+                                <p class="text-3xl font-bold text-accent mt-1" data-bind="stats.avgProgress">68%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-accent text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: DashboardOverview -->
+
+            <!-- Daily Check-in -->
+            <!-- @COMPONENT: DailyCheckin -->
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-8 border border-indigo-100">
+                <div class="flex items-start space-x-4">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-calendar-check text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-slate-900 mb-2">Daily Check-in</h3>
+                        <p class="text-slate-600 mb-4">How did you progress on your goals today?</p>
+                        <!-- @STATE: checkinData:object -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button data-event="click:submitCheckin" data-value="great" class="bg-white hover:bg-green-50 border-2 border-green-200 rounded-lg p-4 text-left transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-smile text-green-500 text-xl"></i>
+                                    <div>
+                                        <p class="font-medium text-slate-900">Great Progress!</p>
+                                        <p class="text-sm text-slate-600">Exceeded expectations</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button data-event="click:submitCheckin" data-value="good" class="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-left transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-thumbs-up text-blue-500 text-xl"></i>
+                                    <div>
+                                        <p class="font-medium text-slate-900">On Track</p>
+                                        <p class="text-sm text-slate-600">Making steady progress</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: DailyCheckin -->
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Current Goals -->
+                <!-- @COMPONENT: CurrentGoalsList -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl border border-slate-200">
+                        <div class="p-6 border-b border-slate-200">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-semibold text-slate-900">Current Goals</h3>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-slate-400 hover:text-slate-600 p-2">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                    <select class="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white">
+                                        <option>All Categories</option>
+                                        <option>Personal</option>
+                                        <option>Work</option>
+                                        <option>Health</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="divide-y divide-slate-100">
+                            <!-- @MAP: goals.map(goal => ( -->
+                            <div class="p-6 hover:bg-slate-50 transition-colors">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3 mb-2">
+                                            <h4 class="font-semibold text-slate-900" data-bind="goal.title">Launch Marketing Campaign</h4>
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Work</span>
+                                        </div>
+                                        <p class="text-slate-600 text-sm mb-3" data-bind="goal.description">Complete the Q4 marketing campaign launch with all deliverables</p>
+                                        
+                                        <!-- Progress Bar -->
+                                        <div class="mb-3">
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span class="text-slate-600">Progress</span>
+                                                <span class="font-medium text-slate-900" data-bind="goal.progress">75%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                                <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 75%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Milestones -->
+                                        <div class="mb-3">
+                                            <p class="text-xs text-slate-500 mb-2">MILESTONES</p>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center space-x-1">
+                                                    <i class="fas fa-check text-xs"></i>
+                                                    <span>Research Complete</span>
+                                                </span>
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center space-x-1">
+                                                    <i class="fas fa-check text-xs"></i>
+                                                    <span>Design Assets</span>
+                                                </span>
+                                                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">Content Creation</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-4 text-sm text-slate-500">
+                                                <span class="flex items-center space-x-1">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <span data-bind="goal.dueDate">Due Dec 15</span>
+                                                </span>
+                                                <span class="flex items-center space-x-1">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span data-bind="goal.timeEstimate">~3 days left</span>
+                                                </span>
+                                            </div>
+                                            <!-- Collaborators -->
+                                            <div class="flex items-center space-x-2">
+                                                <div class="flex -space-x-2">
+                                                    <!-- Team member working on content creation -->
+                                                    <img src="https://pixabay.com/get/g457385ab3d71f2d1218428aca8f032d8ad402f97b65b6f38b0e3f1599064e673af87b1071c2f7dc46d9f26b14baf2af9d1577336d65b95e61f4b8f3e75d20a94_1280.jpg" alt="Team member Sarah" class="w-6 h-6 rounded-full border-2 border-white object-cover">
+                                                    <!-- Team member working on design -->
+                                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&w=32&h=32&auto=format&fit=crop&crop=face" alt="Team member Mike" class="w-6 h-6 rounded-full border-2 border-white object-cover">
+                                                </div>
+                                                <button data-event="click:updateGoal" data-goal-id="1" class="text-primary hover:text-indigo-700 text-sm font-medium">
+                                                    Update
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-6 hover:bg-slate-50 transition-colors">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3 mb-2">
+                                            <h4 class="font-semibold text-slate-900" data-bind="goal.title">Personal Fitness Journey</h4>
+                                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Health</span>
+                                        </div>
+                                        <p class="text-slate-600 text-sm mb-3" data-bind="goal.description">Exercise 4 times per week and improve overall fitness</p>
+                                        
+                                        <!-- Progress Bar -->
+                                        <div class="mb-3">
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span class="text-slate-600">Progress</span>
+                                                <span class="font-medium text-slate-900" data-bind="goal.progress">45%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                                <div class="bg-secondary h-2 rounded-full transition-all duration-300" style="width: 45%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Milestones -->
+                                        <div class="mb-3">
+                                            <p class="text-xs text-slate-500 mb-2">MILESTONES</p>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center space-x-1">
+                                                    <i class="fas fa-check text-xs"></i>
+                                                    <span>Gym Membership</span>
+                                                </span>
+                                                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">Weekly Schedule</span>
+                                                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">Nutrition Plan</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-4 text-sm text-slate-500">
+                                                <span class="flex items-center space-x-1">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <span data-bind="goal.dueDate">Due Jan 31</span>
+                                                </span>
+                                                <span class="flex items-center space-x-1">
+                                                    <i class="fas fa-clock"></i>
+                                                    <span data-bind="goal.timeEstimate">~6 weeks left</span>
+                                                </span>
+                                            </div>
+                                            <!-- Personal goal - no collaborators -->
+                                            <div class="flex items-center space-x-2">
+                                                <button data-event="click:updateGoal" data-goal-id="2" class="text-primary hover:text-indigo-700 text-sm font-medium">
+                                                    Update
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        
+                        <div class="p-6 border-t border-slate-200">
+                            <button class="w-full text-center text-slate-600 hover:text-slate-900 text-sm font-medium">
+                                View All Goals (8 more)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: CurrentGoalsList -->
+
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <!-- Team Activity -->
+                    <!-- @COMPONENT: TeamActivity -->
+                    <div class="bg-white rounded-xl border border-slate-200">
+                        <div class="p-6 border-b border-slate-200">
+                            <h3 class="text-lg font-semibold text-slate-900 flex items-center space-x-2">
+                                <i class="fas fa-users text-slate-400"></i>
+                                <span>Team Activity</span>
+                            </h3>
+                        </div>
+                        <div class="divide-y divide-slate-100">
+                            <!-- @MAP: activities.map(activity => ( -->
+                            <div class="p-4">
+                                <div class="flex items-start space-x-3">
+                                    <!-- Team member completing a goal -->
+                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&w=32&h=32&auto=format&fit=crop&crop=face" alt="Team member Emma" class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-slate-900">
+                                            <span class="font-medium" data-bind="activity.user">Emma</span> completed milestone 
+                                            <span class="font-medium" data-bind="activity.milestone">"User Research"</span>
+                                        </p>
+                                        <p class="text-xs text-slate-500" data-bind="activity.time">2 hours ago</p>
+                                    </div>
+                                    <button data-event="click:sendEncouragement" class="text-green-600 hover:text-green-700">
+                                        <i class="fas fa-thumbs-up text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="p-4">
+                                <div class="flex items-start space-x-3">
+                                    <!-- Team member creating new goal -->
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&w=32&h=32&auto=format&fit=crop&crop=face" alt="Team member Alex" class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-slate-900">
+                                            <span class="font-medium" data-bind="activity.user">Alex</span> created new goal 
+                                            <span class="font-medium" data-bind="activity.goal">"Learn React Native"</span>
+                                        </p>
+                                        <p class="text-xs text-slate-500" data-bind="activity.time">4 hours ago</p>
+                                    </div>
+                                    <button data-event="click:viewGoal" class="text-blue-600 hover:text-blue-700">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="p-4">
+                                <div class="flex items-start space-x-3">
+                                    <!-- Team member making progress -->
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&w=32&h=32&auto=format&fit=crop&crop=face" alt="Team member Mike" class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-slate-900">
+                                            <span class="font-medium" data-bind="activity.user">Mike</span> updated progress on 
+                                            <span class="font-medium" data-bind="activity.goal">"Website Redesign"</span>
+                                        </p>
+                                        <div class="flex items-center space-x-2 mt-1">
+                                            <div class="bg-slate-200 rounded-full h-1.5 w-16">
+                                                <div class="bg-primary h-1.5 rounded-full" style="width: 80%"></div>
+                                            </div>
+                                            <span class="text-xs text-slate-500">80%</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500" data-bind="activity.time">1 day ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        <div class="p-4 border-t border-slate-200">
+                            <button class="w-full text-center text-slate-600 hover:text-slate-900 text-sm font-medium">
+                                View All Activity
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: TeamActivity -->
+
+                    <!-- Quick Actions -->
+                    <!-- @COMPONENT: QuickActions -->
+                    <div class="bg-white rounded-xl border border-slate-200">
+                        <div class="p-6 border-b border-slate-200">
+                            <h3 class="text-lg font-semibold text-slate-900">Quick Actions</h3>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <button data-event="click:inviteFriend" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-3 text-left transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-user-plus text-primary"></i>
+                                    <span class="text-sm font-medium text-slate-900">Invite Team Member</span>
+                                </div>
+                            </button>
+                            
+                            <button data-event="click:createTeamGoal" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-3 text-left transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-users text-secondary"></i>
+                                    <span class="text-sm font-medium text-slate-900">Create Team Goal</span>
+                                </div>
+                            </button>
+                            
+                            <button data-event="click:exportReport" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-3 text-left transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-download text-accent"></i>
+                                    <span class="text-sm font-medium text-slate-900">Export Progress Report</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: QuickActions -->
+
+                    <!-- Weekly Progress -->
+                    <!-- @COMPONENT: WeeklyProgress -->
+                    <div class="bg-white rounded-xl border border-slate-200">
+                        <div class="p-6 border-b border-slate-200">
+                            <h3 class="text-lg font-semibold text-slate-900">This Week's Progress</h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- @STATE: weeklyData:array -->
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">Monday</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-4 h-4 bg-secondary rounded-full"></div>
+                                        <span class="text-sm font-medium">2 goals completed</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">Tuesday</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-4 h-4 bg-primary rounded-full"></div>
+                                        <span class="text-sm font-medium">1 goal updated</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">Wednesday</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-4 h-4 bg-secondary rounded-full"></div>
+                                        <span class="text-sm font-medium">3 milestones reached</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">Today</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-4 h-4 bg-accent rounded-full"></div>
+                                        <span class="text-sm font-medium">Daily check-in pending</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 pt-4 border-t border-slate-200">
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-slate-900">85%</p>
+                                    <p class="text-sm text-slate-600">Weekly completion rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: WeeklyProgress -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Goal Creation Modal (Hidden by default) -->
+        <!-- @COMPONENT: GoalCreationModal [isOpen, onClose, onSubmit] -->
+        <div id="goalModal" class="fixed inset-0 z-50 overflow-y-auto hidden" data-modal="goalCreation">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
+                
+                <div class="inline-block w-full max-w-2xl p-6 my-8 text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900">Create New Goal</h3>
+                        <button data-event="click:closeModal" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- @FUNCTIONALITY: Form should validate inputs and handle goal creation -->
+                    <form data-event="submit:createGoal" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Goal Title</label>
+                            <input type="text" data-mock="true" placeholder="Enter your goal title..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea data-mock="true" placeholder="Describe your goal in detail..." rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                    <option>Personal</option>
+                                    <option>Work</option>
+                                    <option>Health</option>
+                                    <option>Learning</option>
+                                    <option>Creative</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Target Date</label>
+                                <input type="date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Milestones</label>
+                            <div class="space-y-2">
+                                <input type="text" data-mock="true" placeholder="First milestone..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                <input type="text" data-mock="true" placeholder="Second milestone..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                <button type="button" class="text-primary text-sm font-medium flex items-center space-x-1">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Another Milestone</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
+                            <input type="checkbox" id="teamGoal" class="rounded border-gray-300 text-primary focus:ring-primary">
+                            <label for="teamGoal" class="text-sm text-gray-700">
+                                <span class="font-medium">Make this a team goal</span>
+                                <span class="block text-gray-500">Allow team members to collaborate and track progress together</span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button type="button" data-event="click:closeModal" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors">
+                                Create Goal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: GoalCreationModal -->
+    </div>
+    <!-- @END_COMPONENT: AppLayout -->
+
+    <script>
+    // TODO: Implement business logic, API calls, and state management
+    (function() {
+        // Modal functionality
+        const modal = document.getElementById('goalModal');
+        const openModalBtns = document.querySelectorAll('[data-event*="openGoalModal"]');
+        const closeModalBtns = document.querySelectorAll('[data-event*="closeModal"]');
+        
+        openModalBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+            });
+        });
+        
+        closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+        });
+        
+        // Close modal on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+        
+        // Progress bar animations would be implemented here
+        // Goal update functionality would be implemented here
+        // Real-time collaboration features would be implemented here
+    })();
+    </script>
+</body>
+</html>

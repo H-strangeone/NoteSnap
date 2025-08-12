@@ -1,0 +1,408 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TranscribeHub - Meeting Transcription & Collaboration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-blue': '#3B82F6',
+                        'brand-emerald': '#10B981',
+                        'brand-amber': '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-slate-50 text-slate-900">
+    <!-- @COMPONENT: NavigationHeader -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-brand-blue rounded-lg flex items-center justify-center">
+                            <i class="fas fa-microphone text-white text-sm"></i>
+                        </div>
+                        <span class="text-xl font-bold text-slate-900">TranscribeHub</span>
+                    </div>
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#" class="text-brand-blue font-medium border-b-2 border-brand-blue pb-1">Dashboard</a>
+                        <a href="#" class="text-slate-600 hover:text-slate-900 transition-colors">Meetings</a>
+                        <a href="#" class="text-slate-600 hover:text-slate-900 transition-colors">Teams</a>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="bg-brand-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-upload mr-2"></i>New Upload
+                    </button>
+                    <div class="w-8 h-8 bg-slate-300 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: NavigationHeader -->
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- @COMPONENT: Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-lg font-semibold text-slate-900 mb-4">Recent Meetings</h2>
+                    <div class="space-y-3">
+                        <!-- @MAP: meetings.map(meeting => ( -->
+                        <div class="p-3 rounded-lg border border-slate-200 hover:border-brand-blue cursor-pointer transition-colors">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-medium text-slate-900 text-sm" data-bind="meeting.title">Weekly Team Sync</h3>
+                                <span class="text-xs text-slate-500" data-bind="meeting.date">Today</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-600">
+                                <i class="fas fa-users"></i>
+                                <span data-bind="meeting.participants">5 members</span>
+                                <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                                <span data-bind="meeting.duration">45 min</span>
+                            </div>
+                            <div class="mt-2 flex items-center space-x-1">
+                                <span class="w-2 h-2 bg-brand-emerald rounded-full"></span>
+                                <span class="text-xs text-brand-emerald font-medium">Transcribed</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg border border-slate-200 hover:border-brand-blue cursor-pointer transition-colors">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-medium text-slate-900 text-sm">Product Planning</h3>
+                                <span class="text-xs text-slate-500">Yesterday</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-600">
+                                <i class="fas fa-users"></i>
+                                <span>3 members</span>
+                                <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                                <span>1h 15min</span>
+                            </div>
+                            <div class="mt-2 flex items-center space-x-1">
+                                <span class="w-2 h-2 bg-brand-amber rounded-full animate-pulse"></span>
+                                <span class="text-xs text-brand-amber font-medium">Processing</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg border border-slate-200 hover:border-brand-blue cursor-pointer transition-colors">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-medium text-slate-900 text-sm">Client Review</h3>
+                                <span class="text-xs text-slate-500">2 days ago</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-600">
+                                <i class="fas fa-users"></i>
+                                <span>6 members</span>
+                                <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                                <span>30 min</span>
+                            </div>
+                            <div class="mt-2 flex items-center space-x-1">
+                                <span class="w-2 h-2 bg-brand-emerald rounded-full"></span>
+                                <span class="text-xs text-brand-emerald font-medium">Transcribed</span>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-200">
+                        <button class="w-full bg-slate-100 text-slate-700 py-2 px-4 rounded-lg font-medium hover:bg-slate-200 transition-colors">
+                            <i class="fas fa-folder-plus mr-2"></i>Create Folder
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Sidebar -->
+
+            <!-- @COMPONENT: MainContent -->
+            <div class="lg:col-span-3">
+                <!-- Upload Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-brand-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-cloud-upload-alt text-brand-blue text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-900 mb-2">Upload Meeting Recording</h3>
+                        <p class="text-slate-600 mb-6">Support for MP3, MP4, WAV files up to 2GB</p>
+                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-8 hover:border-brand-blue transition-colors cursor-pointer" data-implementation="Implement file drop zone">
+                            <i class="fas fa-file-audio text-slate-400 text-3xl mb-4"></i>
+                            <p class="text-slate-600 mb-2">Drag and drop your file here, or</p>
+                            <button class="bg-brand-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                                Choose File
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Transcription -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-slate-900" data-bind="currentMeeting.title">Weekly Team Sync - March 15, 2024</h2>
+                            <div class="flex items-center space-x-4 text-sm text-slate-600 mt-1">
+                                <span><i class="fas fa-clock mr-1"></i>Duration: <span data-bind="currentMeeting.duration">45 minutes</span></span>
+                                <span><i class="fas fa-users mr-1"></i>Participants: <span data-bind="currentMeeting.participantCount">5</span></span>
+                                <span class="flex items-center space-x-1">
+                                    <span class="w-2 h-2 bg-brand-emerald rounded-full"></span>
+                                    <span class="text-brand-emerald font-medium">Live Collaboration</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="bg-slate-100 text-slate-700 px-3 py-2 rounded-lg font-medium hover:bg-slate-200 transition-colors">
+                                <i class="fas fa-share-alt mr-1"></i>Share
+                            </button>
+                            <button class="bg-brand-blue text-white px-3 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-download mr-1"></i>Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Collaboration Bar -->
+                    <div class="flex items-center justify-between bg-slate-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm font-medium text-slate-700">Active Collaborators:</span>
+                            <div class="flex items-center space-x-2">
+                                <!-- @MAP: collaborators.map(user => ( -->
+                                <div class="flex items-center space-x-1 bg-white rounded-full px-2 py-1 text-xs">
+                                    <div class="w-4 h-4 bg-brand-blue rounded-full"></div>
+                                    <span data-bind="user.name">Sarah</span>
+                                    <span class="w-2 h-2 bg-brand-emerald rounded-full animate-pulse"></span>
+                                </div>
+                                <div class="flex items-center space-x-1 bg-white rounded-full px-2 py-1 text-xs">
+                                    <div class="w-4 h-4 bg-purple-500 rounded-full"></div>
+                                    <span>Mike</span>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            <i class="fas fa-eye mr-1"></i>Last updated 2 minutes ago
+                        </div>
+                    </div>
+
+                    <!-- Action Items Summary -->
+                    <div class="bg-brand-amber/5 border border-brand-amber/20 rounded-lg p-4 mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-slate-900 flex items-center">
+                                <i class="fas fa-tasks text-brand-amber mr-2"></i>
+                                Action Items Detected
+                            </h3>
+                            <span class="bg-brand-amber text-white text-xs px-2 py-1 rounded-full">7 items</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- @MAP: actionItems.map(item => ( -->
+                            <div class="bg-white rounded-lg p-3 border border-slate-200">
+                                <div class="flex items-start justify-between mb-2">
+                                    <span class="bg-brand-amber/10 text-brand-amber text-xs px-2 py-1 rounded">High Priority</span>
+                                    <button class="text-slate-400 hover:text-slate-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                                <p class="text-sm text-slate-700 mb-2" data-bind="item.text">Review design mockups with the team by Friday</p>
+                                <div class="flex items-center justify-between text-xs text-slate-500">
+                                    <span data-bind="item.assignee">Assigned to: Sarah</span>
+                                    <span data-bind="item.timestamp">14:32</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-3 border border-slate-200">
+                                <div class="flex items-start justify-between mb-2">
+                                    <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded">Medium</span>
+                                    <button class="text-slate-400 hover:text-slate-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                                <p class="text-sm text-slate-700 mb-2">Schedule client feedback session</p>
+                                <div class="flex items-center justify-between text-xs text-slate-500">
+                                    <span>Assigned to: Mike</span>
+                                    <span>28:45</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Transcript Section -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-slate-900">Meeting Transcript</h3>
+                            <div class="flex items-center space-x-2">
+                                <button class="text-slate-400 hover:text-slate-600 text-sm">
+                                    <i class="fas fa-search mr-1"></i>Search
+                                </button>
+                                <button class="text-slate-400 hover:text-slate-600 text-sm">
+                                    <i class="fas fa-filter mr-1"></i>Filter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Transcript Content -->
+                        <div class="space-y-4 max-h-96 overflow-y-auto">
+                            <!-- @MAP: transcriptSegments.map(segment => ( -->
+                            <div class="flex space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors" data-mock="true">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-brand-blue rounded-full flex items-center justify-center">
+                                        <span class="text-white text-sm font-medium">S</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <span class="font-medium text-slate-900" data-bind="segment.speaker">Sarah Johnson</span>
+                                        <span class="text-xs text-slate-500" data-bind="segment.timestamp">14:32</span>
+                                        <span class="w-2 h-2 bg-brand-emerald rounded-full animate-pulse" title="Currently being edited"></span>
+                                    </div>
+                                    <p class="text-slate-700 leading-relaxed" data-bind="segment.text">
+                                        So we need to <mark class="bg-brand-amber/20 px-1 rounded" data-implementation="Action item highlighting">review the design mockups with the entire team by Friday</mark>. I think the current direction looks good, but we should get everyone's input before moving forward with development.
+                                    </p>
+                                    <div class="flex items-center space-x-3 mt-2">
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue" data-event="click:addComment">
+                                            <i class="fas fa-comment mr-1"></i>Comment
+                                        </button>
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue" data-event="click:highlightText">
+                                            <i class="fas fa-highlighter mr-1"></i>Highlight
+                                        </button>
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue" data-event="click:createActionItem">
+                                            <i class="fas fa-tasks mr-1"></i>Create Action Item
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white text-sm font-medium">M</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <span class="font-medium text-slate-900">Mike Chen</span>
+                                        <span class="text-xs text-slate-500">14:35</span>
+                                    </div>
+                                    <p class="text-slate-700 leading-relaxed">
+                                        Absolutely agree. I can <mark class="bg-brand-amber/20 px-1 rounded">schedule a client feedback session</mark> for next week to gather their thoughts as well. We want to make sure we're aligned with their vision before finalizing anything.
+                                    </p>
+                                    <div class="flex items-center space-x-3 mt-2">
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue">
+                                            <i class="fas fa-comment mr-1"></i>Comment
+                                        </button>
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue">
+                                            <i class="fas fa-highlighter mr-1"></i>Highlight
+                                        </button>
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue">
+                                            <i class="fas fa-tasks mr-1"></i>Create Action Item
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white text-sm font-medium">A</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <span class="font-medium text-slate-900">Alex Rivera</span>
+                                        <span class="text-xs text-slate-500">14:37</span>
+                                    </div>
+                                    <p class="text-slate-700 leading-relaxed">
+                                        Great plan. From a technical perspective, the implementation looks feasible. We should also consider the mobile responsiveness aspects during the review. I'll prepare some technical documentation to support the design decisions.
+                                    </p>
+                                    <div class="flex items-center space-x-3 mt-2">
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue">
+                                            <i class="fas fa-comment mr-1"></i>Comment
+                                        </button>
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue">
+                                            <i class="fas fa-highlighter mr-1"></i>Highlight
+                                        </button>
+                                        <button class="text-xs text-slate-500 hover:text-brand-blue">
+                                            <i class="fas fa-tasks mr-1"></i>Create Action Item
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: MainContent -->
+        </div>
+    </div>
+
+    <!-- @COMPONENT: MobileNavigationModal -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden hidden" id="mobileMenuOverlay">
+        <div class="bg-white w-64 h-full p-6">
+            <div class="flex items-center justify-between mb-6">
+                <span class="text-lg font-semibold">Menu</span>
+                <button id="closeMobileMenu">
+                    <i class="fas fa-times text-slate-600"></i>
+                </button>
+            </div>
+            <nav class="space-y-4">
+                <a href="#" class="block text-brand-blue font-medium">Dashboard</a>
+                <a href="#" class="block text-slate-600">Meetings</a>
+                <a href="#" class="block text-slate-600">Teams</a>
+                <a href="#" class="block text-slate-600">Settings</a>
+            </nav>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MobileNavigationModal -->
+
+    <script>
+        // TODO: Implement real-time collaboration features
+        // TODO: Implement file upload and transcription API integration
+        // TODO: Implement action item detection and management
+        // TODO: Implement export functionality
+        
+        (function() {
+            // Mobile menu toggle functionality
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+            const closeMobileMenu = document.getElementById('closeMobileMenu');
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenuOverlay.classList.remove('hidden');
+                });
+            }
+
+            if (closeMobileMenu) {
+                closeMobileMenu.addEventListener('click', () => {
+                    mobileMenuOverlay.classList.add('hidden');
+                });
+            }
+
+            // Simulated real-time collaboration indicators
+            const collaborationIndicators = document.querySelectorAll('.animate-pulse');
+            collaborationIndicators.forEach(indicator => {
+                setInterval(() => {
+                    indicator.classList.toggle('animate-pulse');
+                }, 3000);
+            });
+
+            // Placeholder for transcript highlighting functionality
+            const transcriptSegments = document.querySelectorAll('[data-bind*="segment"]');
+            transcriptSegments.forEach(segment => {
+                segment.addEventListener('mouseenter', () => {
+                    segment.style.backgroundColor = '#f8fafc';
+                });
+                segment.addEventListener('mouseleave', () => {
+                    segment.style.backgroundColor = '';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

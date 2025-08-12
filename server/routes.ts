@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSimpleAuth, isAuthenticated } from "./simple-auth";
 import { 
   insertGoalSchema, 
   insertMilestoneSchema, 
@@ -12,24 +12,14 @@ import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  setupSimpleAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Auth routes are handled by setupSimpleAuth
 
   // Goal routes
   app.get('/api/goals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const goals = await storage.getGoals(userId);
       
       // Get milestones for each goal
@@ -50,7 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/goals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const goalData = insertGoalSchema.parse({ ...req.body, userId });
       
       const goal = await storage.createGoal(goalData);
@@ -103,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Team goals
   app.get('/api/team-goals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const teamGoals = await storage.getTeamGoals(userId);
       
       const goalsWithDetails = await Promise.all(
@@ -138,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Progress tracking
   app.post('/api/progress', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const progressData = insertProgressEntrySchema.parse({ ...req.body, userId });
       
       const entry = await storage.createProgressEntry(progressData);
@@ -158,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Daily check-in
   app.get('/api/checkin/today', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const checkin = await storage.getTodayCheckin(userId);
       res.json(checkin);
     } catch (error) {
@@ -169,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/checkin', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const checkinData = insertDailyCheckinSchema.parse({ ...req.body, userId });
       
       const checkin = await storage.createDailyCheckin(checkinData);
@@ -183,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activity feed
   app.get('/api/activities', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const limit = parseInt(req.query.limit as string) || 10;
       const activities = await storage.getRecentActivities(userId, limit);
       
@@ -205,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics
   app.get('/api/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error) {

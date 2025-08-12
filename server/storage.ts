@@ -69,58 +69,44 @@ export interface IStorage {
   }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private goals: Map<string, Goal>;
-  private milestones: Map<string, Milestone>;
-  private goalCollaborators: Map<string, GoalCollaborator>;
-  private progressEntries: Map<string, ProgressEntry>;
-  private dailyCheckins: Map<string, DailyCheckin>;
-  private activities: Map<string, Activity>;
+import { db } from "./db";
+import { eq, and, or, gte, lt, desc, inArray } from "drizzle-orm";
 
-  constructor() {
-    this.users = new Map();
-    this.goals = new Map();
-    this.milestones = new Map();
-    this.goalCollaborators = new Map();
-    this.progressEntries = new Map();
-    this.dailyCheckins = new Map();
-    this.activities = new Map();
-  }
+export class DatabaseStorage implements IStorage {
 
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const user: User = {
-      ...userData,
-      id: userData.id || randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.set(user.id, user);
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
     return user;
   }
 
   // Goal operations
   async getGoals(userId: string): Promise<Goal[]> {
-    return Array.from(this.goals.values()).filter(goal => goal.userId === userId);
+    return await db.select().from(goals).where(eq(goals.userId, userId));
   }
 
   async getGoal(id: string): Promise<Goal | undefined> {
-    return this.goals.get(id);
+    const [goal] = await db.select().from(goals).where(eq(goals.id, id));
+    return goal;
   }
 
   async createGoal(goalData: InsertGoal): Promise<Goal> {
-    const goal: Goal = {
-      ...goalData,
-      id: randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.goals.set(goal.id, goal);
+    const [goal] = await db.insert(goals).values(goalData).returning();
 
     // Create activity
     await this.createActivity({
@@ -134,75 +120,64 @@ export class MemStorage implements IStorage {
   }
 
   async updateGoal(id: string, updates: Partial<Goal>): Promise<Goal> {
-    const goal = this.goals.get(id);
+    const [goal] = await db
+      .update(goals)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(goals.id, id))
+      .returning();
+
     if (!goal) throw new Error("Goal not found");
 
-    const updatedGoal: Goal = {
-      ...goal,
-      ...updates,
-      updatedAt: new Date(),
-    };
-    this.goals.set(id, updatedGoal);
-
     // Create activity for progress updates
-    if (updates.progress !== undefined && updates.progress !== goal.progress) {
+    if (updates.progress !== undefined) {
       await this.createActivity({
         type: "progress_updated",
         userId: goal.userId,
         goalId: goal.id,
         data: { 
           goalTitle: goal.title,
-          previousProgress: goal.progress,
           newProgress: updates.progress 
         },
       });
     }
 
-    return updatedGoal;
+    return goal;
   }
 
   async deleteGoal(id: string): Promise<void> {
-    this.goals.delete(id);
-    // Also delete related data
-    Array.from(this.milestones.entries()).forEach(([key, milestone]) => {
-      if (milestone.goalId === id) this.milestones.delete(key);
-    });
-    Array.from(this.goalCollaborators.entries()).forEach(([key, collab]) => {
-      if (collab.goalId === id) this.goalCollaborators.delete(key);
-    });
+    await db.delete(goals).where(eq(goals.id, id));
   }
 
   // Milestone operations
   async getMilestones(goalId: string): Promise<Milestone[]> {
-    return Array.from(this.milestones.values())
-      .filter(milestone => milestone.goalId === goalId)
-      .sort((a, b) => a.order - b.order);
+    return await db
+      .select()
+      .from(milestones)
+      .where(eq(milestones.goalId, goalId))
+      .orderBy(milestones.order);
   }
 
   async createMilestone(milestoneData: InsertMilestone): Promise<Milestone> {
-    const milestone: Milestone = {
-      ...milestoneData,
-      id: randomUUID(),
-      createdAt: new Date(),
-      completedAt: null,
-    };
-    this.milestones.set(milestone.id, milestone);
+    const [milestone] = await db.insert(milestones).values(milestoneData).returning();
     return milestone;
   }
 
   async updateMilestone(id: string, updates: Partial<Milestone>): Promise<Milestone> {
-    const milestone = this.milestones.get(id);
+    const updateData = {
+      ...updates,
+      ...(updates.isCompleted ? { completedAt: new Date() } : {}),
+    };
+
+    const [milestone] = await db
+      .update(milestones)
+      .set(updateData)
+      .where(eq(milestones.id, id))
+      .returning();
+
     if (!milestone) throw new Error("Milestone not found");
 
-    const updatedMilestone: Milestone = {
-      ...milestone,
-      ...updates,
-      completedAt: updates.isCompleted ? new Date() : milestone.completedAt,
-    };
-    this.milestones.set(id, updatedMilestone);
-
     // Create activity for milestone completion
-    if (updates.isCompleted && !milestone.isCompleted) {
+    if (updates.isCompleted) {
       const goal = await this.getGoal(milestone.goalId);
       await this.createActivity({
         type: "milestone_completed",
@@ -216,81 +191,91 @@ export class MemStorage implements IStorage {
       });
     }
 
-    return updatedMilestone;
+    return milestone;
   }
 
   async deleteMilestone(id: string): Promise<void> {
-    this.milestones.delete(id);
+    await db.delete(milestones).where(eq(milestones.id, id));
   }
 
   // Progress operations
   async getProgressEntries(goalId: string): Promise<ProgressEntry[]> {
-    return Array.from(this.progressEntries.values())
-      .filter(entry => entry.goalId === goalId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return await db
+      .select()
+      .from(progressEntries)
+      .where(eq(progressEntries.goalId, goalId))
+      .orderBy(desc(progressEntries.createdAt));
   }
 
   async createProgressEntry(entryData: InsertProgressEntry): Promise<ProgressEntry> {
-    const entry: ProgressEntry = {
-      ...entryData,
-      id: randomUUID(),
-      createdAt: new Date(),
-    };
-    this.progressEntries.set(entry.id, entry);
+    const [entry] = await db.insert(progressEntries).values(entryData).returning();
     return entry;
   }
 
   // Collaboration operations
   async getGoalCollaborators(goalId: string): Promise<GoalCollaborator[]> {
-    return Array.from(this.goalCollaborators.values()).filter(collab => collab.goalId === goalId);
+    return await db.select().from(goalCollaborators).where(eq(goalCollaborators.goalId, goalId));
   }
 
   async addCollaborator(goalId: string, userId: string, role: string = "collaborator"): Promise<GoalCollaborator> {
-    const collaborator: GoalCollaborator = {
-      id: randomUUID(),
-      goalId,
-      userId,
-      role,
-      createdAt: new Date(),
-    };
-    this.goalCollaborators.set(collaborator.id, collaborator);
+    const [collaborator] = await db
+      .insert(goalCollaborators)
+      .values({ goalId, userId, role })
+      .returning();
     return collaborator;
   }
 
   async removeCollaborator(goalId: string, userId: string): Promise<void> {
-    Array.from(this.goalCollaborators.entries()).forEach(([key, collab]) => {
-      if (collab.goalId === goalId && collab.userId === userId) {
-        this.goalCollaborators.delete(key);
-      }
-    });
+    await db
+      .delete(goalCollaborators)
+      .where(and(eq(goalCollaborators.goalId, goalId), eq(goalCollaborators.userId, userId)));
   }
 
   async getTeamGoals(userId: string): Promise<Goal[]> {
-    const collaboratorGoalIds = Array.from(this.goalCollaborators.values())
-      .filter(collab => collab.userId === userId)
-      .map(collab => collab.goalId);
+    const collaboratorGoals = await db
+      .select({ goalId: goalCollaborators.goalId })
+      .from(goalCollaborators)
+      .where(eq(goalCollaborators.userId, userId));
 
-    return Array.from(this.goals.values()).filter(goal => 
-      goal.isTeamGoal && (goal.userId === userId || collaboratorGoalIds.includes(goal.id))
-    );
+    const goalIds = collaboratorGoals.map(c => c.goalId);
+
+    return await db
+      .select()
+      .from(goals)
+      .where(
+        and(
+          eq(goals.isTeamGoal, true),
+          or(eq(goals.userId, userId), inArray(goals.id, goalIds))
+        )
+      );
   }
 
   // Daily checkin operations
   async getTodayCheckin(userId: string): Promise<DailyCheckin | undefined> {
-    const today = new Date().toDateString();
-    return Array.from(this.dailyCheckins.values()).find(checkin => 
-      checkin.userId === userId && checkin.date.toDateString() === today
-    );
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [checkin] = await db
+      .select()
+      .from(dailyCheckins)
+      .where(
+        and(
+          eq(dailyCheckins.userId, userId),
+          gte(dailyCheckins.date, today),
+          lt(dailyCheckins.date, tomorrow)
+        )
+      );
+
+    return checkin;
   }
 
   async createDailyCheckin(checkinData: InsertDailyCheckin): Promise<DailyCheckin> {
-    const checkin: DailyCheckin = {
-      ...checkinData,
-      id: randomUUID(),
-      date: new Date(),
-      createdAt: new Date(),
-    };
-    this.dailyCheckins.set(checkin.id, checkin);
+    const [checkin] = await db
+      .insert(dailyCheckins)
+      .values({ ...checkinData, date: new Date() })
+      .returning();
 
     // Create activity
     await this.createActivity({
@@ -304,26 +289,29 @@ export class MemStorage implements IStorage {
 
   // Activity operations
   async getRecentActivities(userId: string, limit: number = 10): Promise<Activity[]> {
-    // Get activities from user's team goals and collaborations
     const teamGoals = await this.getTeamGoals(userId);
     const teamGoalIds = teamGoals.map(goal => goal.id);
 
-    return Array.from(this.activities.values())
-      .filter(activity => 
-        activity.userId === userId || 
-        (activity.goalId && teamGoalIds.includes(activity.goalId))
-      )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, limit);
+    let whereCondition;
+    if (teamGoalIds.length > 0) {
+      whereCondition = or(
+        eq(activities.userId, userId),
+        inArray(activities.goalId!, teamGoalIds)
+      );
+    } else {
+      whereCondition = eq(activities.userId, userId);
+    }
+
+    return await db
+      .select()
+      .from(activities)
+      .where(whereCondition)
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
   }
 
   async createActivity(activityData: InsertActivity): Promise<Activity> {
-    const activity: Activity = {
-      ...activityData,
-      id: randomUUID(),
-      createdAt: new Date(),
-    };
-    this.activities.set(activity.id, activity);
+    const [activity] = await db.insert(activities).values(activityData).returning();
     return activity;
   }
 
@@ -340,7 +328,7 @@ export class MemStorage implements IStorage {
     const activeGoals = userGoals.filter(goal => !goal.isCompleted).length;
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const completedWeek = userGoals.filter(goal => 
-      goal.isCompleted && goal.updatedAt >= weekAgo
+      goal.isCompleted && goal.updatedAt && goal.updatedAt >= weekAgo
     ).length;
     
     const totalProgress = userGoals.reduce((sum, goal) => sum + (goal.progress || 0), 0);
@@ -355,4 +343,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

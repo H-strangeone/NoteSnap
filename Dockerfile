@@ -1,24 +1,35 @@
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install build tools for esbuild native binaries
+RUN apk add --no-cache python3 make g++
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy and install dependencies (include dev deps for build)
+COPY package*.json ./
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build frontend + backend
 RUN npm run build
 
-# Expose port
+# Production stage
+FROM node:18-alpine AS production
+
+WORKDIR /app
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm install --only=production
+
+# Copy built files from build stage
+COPY --from=build /app/dist ./dist
+
+# Expose (just for local reference — Railway ignores this)
 EXPOSE 5000
 
-# Set environment
-ENV NODE_ENV=production
-
-# Start the application
+# Start backend
 CMD ["npm", "start"]

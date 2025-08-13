@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">our-app</string>
-    <string name="title_activity_main">our-app</string>
-    <string name="package_name">com.example.app</string>
-    <string name="custom_url_scheme">com.example.app</string>
+    <string name="app_name">me2u</string>
+    <string name="title_activity_main">me2u</string>
+    <string name="package_name">com.muah.me2u</string>
+    <string name="custom_url_scheme">com.muah.me2u</string>
 </resources>

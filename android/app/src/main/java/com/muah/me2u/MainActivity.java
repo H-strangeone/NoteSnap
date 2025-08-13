@@ -1,4 +1,4 @@
-package com.example.app;
+package com.muah.me2u;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -18,14 +18,34 @@ buildscript {
 
 
 apply from: "variables.gradle"
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile).configureEach {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
+    }
+}
+
 
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
+    
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+subprojects {
+    afterEvaluate {
+        if (plugins.hasPlugin("java")) {
+            tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+        }
+    }
 }

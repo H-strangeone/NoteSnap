@@ -14,6 +14,10 @@
     "check": "tsc",
     "db:push": "drizzle-kit push"
   },
+  "engines": {
+    "node": "20.x"
+  },
+
   "dependencies": {
     "@capacitor/android": "^7.4.2",
     "@capacitor/cli": "^7.4.2",

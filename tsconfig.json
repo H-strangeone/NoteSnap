@@ -1,18 +1,34 @@
 {
   "compilerOptions": {
+    /* Build options */
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
-    "target": "ES2020",
-    "module": "CommonJS",
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo",
+
+    /* ECMAScript target & module system */
+    "target": "ES2022",                   // Modern syntax for Node 18+
+    "module": "NodeNext",                 // ESM-aware module resolution
+    "moduleResolution": "NodeNext",       // ESM-compatible import paths
+
+    /* Output structure */
     "outDir": "dist",
     "rootDir": "server",
+
+    /* Strictness & type checking */
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+
+    /* ESM interop (still useful for some CJS deps) */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Path & type settings */
     "baseUrl": ".",
     "types": ["node"],
-    "typeRoots": ["./types", "./node_modules/@types"]
+    "typeRoots": ["./types", "./node_modules/@types"],
+
+    /* Ensure .ts/.js extensions work in imports */
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true
   },
   "include": ["server/**/*"],
   "exclude": ["node_modules", "dist", "client", "src", "build", "**/*.test.ts"]

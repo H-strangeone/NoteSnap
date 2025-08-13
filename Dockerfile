@@ -10,6 +10,9 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm install
 
+# Install cross-env globally (so it works in all scripts)
+RUN npm install -g cross-env
+
 # Copy source code
 COPY . .
 
@@ -23,7 +26,7 @@ WORKDIR /app
 
 # Install only production dependencies
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm install --only=production && npm install -g cross-env
 
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
@@ -31,5 +34,5 @@ COPY --from=build /app/dist ./dist
 # Expose (just for local reference — Railway ignores this)
 EXPOSE 5000
 
-# Start backend
-CMD ["npm", "start"]
+# Start backend using cross-env for portability
+CMD ["cross-env", "NODE_ENV=production", "node", "dist/index.js"]

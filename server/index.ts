@@ -9,7 +9,9 @@ import { setupVite, serveStatic, log } from "./vite";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+app.get("/", (req: Request, res: Response) => {
+  res.status(200).send("OK");
+});
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
